@@ -1,0 +1,33 @@
+# Build and development files
+build/
+devel/
+install/
+
+# Compiled binaries
+bin/
+lib/
+
+# ROS log files
+*.log
+
+# ROS build artifacts
+CMakeLists.txt.user
+CMakeCache.txt
+catkin_generated/
+build_isolated/
+install_isolated/
+
+# IDE specific files
+.vscode/
+.idea/
+
+# Other generated files
+*.swp
+*.swo
+*.pyc
+*.pyo
+*.pyd
+*.bak
+*.orig
+*.rej
+*~

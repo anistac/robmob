@@ -1,2 +1,0 @@
-minilab_model:minilab_simulation:myteleop:pioneer3dx/pioneer3dx_description
--DCATKIN_DEVEL_PREFIX=/home/ros/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/ros/catkin_ws/install -G Unix Makefiles

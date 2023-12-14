@@ -1,8 +1,0 @@
-prefix=/home/ros/catkin_ws/devel
-
-Name: myteleop
-Description: Description of myteleop
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
