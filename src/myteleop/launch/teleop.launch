@@ -1,0 +1,11 @@
+<launch>
+  <include file="$(find minilab_simulation)/launch/minilab_simulation.lauch" />
+  <node name="slam_gmapping" pkg="gmapping" type="slam_gmapping">
+    <param name="base_frame" value="base_link" />  
+    <param name="xmin" value="-10" />
+    <param name="xmax" value="10" />
+    <param name="ymin" value="-10" />
+    <param name="ymax" value="10" />
+  </node>
+  <node name="teleop" pkg="myteleop" name="teleop.py"
+</launch>

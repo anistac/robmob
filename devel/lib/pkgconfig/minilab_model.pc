@@ -1,0 +1,8 @@
+prefix=/home/ros/catkin_ws/devel
+
+Name: minilab_model
+Description: Description of minilab_model
+Version: 0.1.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

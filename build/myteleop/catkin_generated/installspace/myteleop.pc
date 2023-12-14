@@ -1,0 +1,8 @@
+prefix=/home/ros/catkin_ws/install
+
+Name: myteleop
+Description: Description of myteleop
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

@@ -1,0 +1,8 @@
+prefix=/home/ros/catkin_ws/install
+
+Name: minilab_simulation
+Description: Description of minilab_simulation
+Version: 0.1.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
