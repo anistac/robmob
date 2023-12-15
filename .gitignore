@@ -31,3 +31,6 @@ install_isolated/
 *.orig
 *.rej
 *~
+
+# Ignore png files in the utils folder
+utils/**/*.png
