@@ -33,4 +33,4 @@ install_isolated/
 *~
 
 # Ignore png files in the utils folder
-utils/**/*.png
+#utils/**/*.png
