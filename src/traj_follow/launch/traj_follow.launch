@@ -1,0 +1,3 @@
+<launch>
+    <node name="traj_follow_node" pkg="traj_follow" type="traj_follow_node.py" output="screen" />
+</launch>

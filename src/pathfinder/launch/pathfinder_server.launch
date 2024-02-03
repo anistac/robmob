@@ -1,0 +1,3 @@
+<launch>
+    <node name="pathfinding_node" pkg="pathfinder" type="pathfinding_bit_star.py" output="screen" />
+</launch>

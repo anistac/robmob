@@ -1,4 +1,6 @@
 <launch>
+  <include file="$(find pathfinder)/launch/pathfinder_server.launch" />
+  <include file="$(find traj_follow)/launch/traj_follow.launch" />
   <include file="$(find minilab_simulation)/launch/minilab_simulation.launch" />
   <node name="slam_gmapping" pkg="gmapping" type="slam_gmapping">
     <param name="base_frame" value="base_link" />  
@@ -6,11 +8,13 @@
     <param name="xmax" value="10" />
     <param name="ymin" value="-10" />
     <param name="ymax" value="10" />
-    <param name="odom_frame" value="odom"/> 
+    <param name="odom_frame" value="odom"/>
     <param name="map_update_interval" value="1.0" />
   </node>
-  <node respawn="true" pkg="joy" type="joy_node" name="joy_node" >
+  <node respawn="true" pkg="joy" type="joy_node" name="joy_node">
     <param name="deadzone" value="0.12" />
+    <!-- <param name="autorepeat_rate" value="10" /> -->
   </node>
-  <node name="teleop" pkg="myteleop" type="teleop.py"/>
-  </launch>
+  <node name="teleop" pkg="myteleop" type="teleop.py" output="screen"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find myteleop)/rviz/teleop.rviz" />
+</launch>
