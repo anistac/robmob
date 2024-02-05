@@ -2,7 +2,7 @@
 import os
 import pathlib
 import sys
-
+import math
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,11 +26,11 @@ global path_publisher, tf_listener
 
 
 def handle_path_finding(pose_stamped_msg):
-    
+
     # send empty path to be sure that the robot stops
     path_msg = Path(header=Header(frame_id="/map"), poses=[])
     path_publisher.publish(path_msg)
-    
+
     # get goal and robot position
     goal_position = pose_stamped_msg.pose.position
 
@@ -45,9 +45,7 @@ def handle_path_finding(pose_stamped_msg):
 
     print(f"\tMap width: {map.info.width}, height: {map.info.height}")
     print(f"\tMap resolution: {map.info.resolution:.2g}")
-    print(
-        f"\tMap origin: {map.info.origin.position.x:.2g}, {map.info.origin.position.y:.2g}"
-    )
+    print(f"\tMap origin: {map.info.origin.position.x:.2g}, {map.info.origin.position.y:.2g}")
 
     (trans, rot) = tf_listener.lookupTransform("/map", "/base_link", rospy.Time(0))
     transform_matrix = tf.TransformerROS().fromTranslationRotation(trans, rot)
@@ -65,32 +63,65 @@ def handle_path_finding(pose_stamped_msg):
     robot_pixel = img_world_transform.world_to_grid(robot_x, robot_y)
     print(f"\tRobot pos in pixel: {robot_pixel}")
 
+    # Folder to save the images
+    desktop_folder = os.path.join(pathlib.Path.home(), "Desktop")
     # reshape, normalize and apply threshold
-    map_data = (
-        np.asarray(map.data, dtype=np.int8).reshape(map.info.height, map.info.width).T
-    )
-    map_data = np.where(map_data == -1, 1, map_data)
-
+    map_data = np.asarray(map.data, dtype=np.int8).reshape(map.info.height, map.info.width).T
+    unknown_mask = np.where(map_data == -1, 1, 0).astype(np.uint8)
+    file_name = os.path.join(desktop_folder, "unknown.png")
+    cv2.imwrite(file_name, unknown_mask * 255)
     map_data[map_data > OCCUPANCY_THRESH] = 1
     map_data[map_data <= OCCUPANCY_THRESH] = 0
+    map_data = np.where(map_data == -1, 1, map_data)
     map_data = map_data.astype(np.uint8)
-    
-    # Apply median blur to the map to remove noise
-    map_data = cv2.medianBlur(map_data, 3)
-    
-    # save the map to a file
-    unique_file_name = f'map_{rospy.Time.now().to_nsec()}.png'
-    map_file = os.path.join(pathlib.Path.home(),"debug_maps" , unique_file_name)
 
-    # Make a dillation of the map to take into account the robot size
-    robot_radius = 0.75  # meters
-    kernel_size = int(robot_radius / map.info.resolution)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
-    map_data = cv2.dilate(map_data, kernel, iterations=1)
-    
+    # save threadholded map
+    file_name = os.path.join(desktop_folder, "obstacles.png")
+    cv2.imwrite(file_name, map_data * 255)
+    map_data_copy = cv2.cvtColor(map_data * 255, cv2.COLOR_GRAY2RGB)
+    cv2.circle(map_data_copy, (robot_pixel[1], robot_pixel[0]), 4, (0, 0, 255), -1)
+    cv2.circle(map_data_copy, (goal_pixel[1], goal_pixel[0]), 4, (0, 255, 0), -1)
+    map_data_stack = map_data_copy
+
+    # open the unknown areas to remove artifacts
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    unknown_mask = cv2.morphologyEx(unknown_mask, cv2.MORPH_OPEN, kernel)
+    file_name = os.path.join(desktop_folder, "unknown_opened.png")
+    cv2.imwrite(file_name, unknown_mask * 255)
+    # apply mask to the map
+    map_data = np.where(unknown_mask == 1, 1, map_data)
+    file_name = os.path.join(desktop_folder, "merged.png")
+    cv2.imwrite(file_name, map_data * 255)
+    map_data_copy = cv2.cvtColor(map_data * 255, cv2.COLOR_GRAY2RGB)
+    cv2.circle(map_data_copy, (robot_pixel[1], robot_pixel[0]), 4, (0, 0, 255), -1)
+    cv2.circle(map_data_copy, (goal_pixel[1], goal_pixel[0]), 4, (0, 255, 0), -1)
+    map_data_stack = cv2.hconcat([map_data_stack, map_data_copy])
+
     # Small patch to the map to avoid situations where the robot start position is in an obstacle
     # Add circle around the robot position
-    cv2.circle(map_data, tuple(robot_pixel), kernel_size, 0, -1)
+    robot_radius = 0.5  # meters
+    robot_radius_px = math.ceil(robot_radius / map.info.resolution)
+    cv2.circle(map_data, (robot_pixel[1], robot_pixel[0]), robot_radius_px, 0, -1)
+    file_name = os.path.join(desktop_folder, "merged_self_patch.png")
+    cv2.imwrite(file_name, map_data * 255)
+    map_data_copy = cv2.cvtColor(map_data * 255, cv2.COLOR_GRAY2RGB)
+    cv2.circle(map_data_copy, (robot_pixel[1], robot_pixel[0]), 4, (0, 0, 255), -1)
+    cv2.circle(map_data_copy, (goal_pixel[1], goal_pixel[0]), 4, (0, 255, 0), -1)
+    map_data_stack = cv2.hconcat([map_data_stack, map_data_copy])
+
+    # Make a dillation of the map to take into account the robot size
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    map_data = cv2.dilate(map_data, kernel, iterations=robot_radius_px)
+    file_name = os.path.join(desktop_folder, "final_dilated.png")
+    cv2.imwrite(file_name, map_data * 255)
+    map_data_copy = cv2.cvtColor(map_data * 255, cv2.COLOR_GRAY2RGB)
+    cv2.circle(map_data_copy, (robot_pixel[1], robot_pixel[0]), 4, (0, 0, 255), -1)
+    cv2.circle(map_data_copy, (goal_pixel[1], goal_pixel[0]), 4, (0, 255, 0), -1)
+    map_data_stack = cv2.hconcat([map_data_stack, map_data_copy])
+
+    # save the stack of images
+    file_name = os.path.join(desktop_folder, "map_stack.png")
+    cv2.imwrite(file_name, map_data_stack)
 
     path_finder = BITStar(
         occupancy_grid=map_data,
@@ -133,7 +164,11 @@ def path_finding_server():
     tf_listener = tf.TransformListener()
     # wait for transform to be available
     tf_listener.waitForTransform(
-        "/map", "/base_link", rospy.Time(0), rospy.Duration(secs=5), rospy.Duration(nsecs=10e6) # 50ms
+        "/map",
+        "/base_link",
+        rospy.Time(0),
+        rospy.Duration(secs=5),
+        rospy.Duration(nsecs=10e6),  # 50ms
     )
 
     rospy.Subscriber("/move_base_simple/goal", PoseStamped, handle_path_finding)

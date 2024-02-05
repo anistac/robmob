@@ -8,8 +8,10 @@ import tf
 from geometry_msgs.msg import Twist, PoseStamped, Pose, Point, Quaternion
 from sensor_msgs.msg import Joy
 
-LINEAR_SPEED_LIMIT = 0.3
-ANGULAR_SPEED_LIMIT = np.pi / 2
+# LINEAR_SPEED_LIMIT = 0.3
+# ANGULAR_SPEED_LIMIT = np.pi / 2
+LINEAR_SPEED_LIMIT = 5
+ANGULAR_SPEED_LIMIT = np.pi 
 
 
 class Teleop:

@@ -14,10 +14,15 @@ from std_msgs.msg import ColorRGBA, Header, Empty
 from tf.transformations import euler_from_quaternion
 from visualization_msgs.msg import Marker
 
-MAX_LINEAR_VEL = 1  # m/s
-MAX_ANGULAR_VEL = 2 * np.pi  # rad/s
+# MAX_LINEAR_VEL = 1  # m/s
+# MAX_ANGULAR_VEL = 2 * np.pi  # rad/s
+# K1 = K2 = 1
+# TRAJ_SPEED = 0.2
+MAX_LINEAR_VEL = 5  # m/s
+MAX_ANGULAR_VEL = 1 * np.pi  # rad/s
+K1 = K2 = 2
+TRAJ_SPEED = MAX_LINEAR_VEL / 4
 P_L1, P_L2 = 0.2, 0
-K1 = K2 = 1
 
 global path_subscriber, twist_publisher, marker_publisher, goal_reached_publisher
 
@@ -46,9 +51,8 @@ class TrajectoryFollower:
         checkpoints = [(position.x, position.y) for position in positions]
 
         # define some constants to do the interpolation of the path
-        traj_max_speed = 0.2
         step_length = 0.01
-        dt = step_length / traj_max_speed
+        dt = step_length / TRAJ_SPEED
         list_interpolated_points = []
         total_dist = 0.0
 
