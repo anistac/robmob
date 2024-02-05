@@ -36,27 +36,27 @@ class Teleop:
             pose_stamped = PoseStamped(pose=pose, header=rospy.Header(frame_id="map"))
             self._goal_pub.publish(pose_stamped)
 
-        # # if triangle is pressed run the exploration node
-        # if joy_msg.buttons[2] == 1:
-        #     if self._expl_subprocess is not None:
-        #         rospy.logwarn("Exploration node already running, cannot start another one")
-        #     else:
-        #         rospy.loginfo("Exploration node started")
-        #         self._expl_subprocess = subprocess.Popen(["rosrun", "explo_node", "explo_node.py"])
+        # if triangle is pressed run the exploration node
+        if joy_msg.buttons[2] == 1:
+            if self._expl_subprocess is not None:
+                rospy.logwarn("Exploration node already running, cannot start another one")
+            else:
+                rospy.loginfo("Exploration node started")
+                self._expl_subprocess = subprocess.Popen(["rosrun", "explo_node", "explo_node.py"])
 
-        # # if circle is pressed stop the exploration node
-        # if joy_msg.buttons[1] == 1:
-        #     if self._expl_subprocess is None:
-        #         rospy.logwarn("No exploration node running")
-        #     else:
-        #         self._expl_subprocess.terminate()
-        #         self._expl_subprocess = None
-        #         # stop current traj by sending goal to robot position
-        #         trans, rot = self._robot_tf.lookupTransform("/map", "/base_link", rospy.Time(0))
-        #         pose = Pose(position=Point(x=trans[0], y=trans[1]), orientation=Quaternion())
-        #         pose_stamped = PoseStamped(pose=pose, header=rospy.Header(frame_id="map"))
-        #         self._goal_pub.publish(pose_stamped)
-        #         rospy.loginfo("Exploration node stopped")
+        # if circle is pressed stop the exploration node
+        if joy_msg.buttons[1] == 1:
+            if self._expl_subprocess is None:
+                rospy.logwarn("No exploration node running")
+            else:
+                self._expl_subprocess.terminate()
+                self._expl_subprocess = None
+                # stop current traj by sending goal to robot position
+                trans, rot = self._robot_tf.lookupTransform("/map", "/base_link", rospy.Time(0))
+                pose = Pose(position=Point(x=trans[0], y=trans[1]), orientation=Quaternion())
+                pose_stamped = PoseStamped(pose=pose, header=rospy.Header(frame_id="map"))
+                self._goal_pub.publish(pose_stamped)
+                rospy.loginfo("Exploration node stopped")
 
 
 if __name__ == "__main__":
